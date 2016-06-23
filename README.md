@@ -1,19 +1,193 @@
-# aurelia-skeleton-navigation
+# aurelia-skeleton-webpack
 
-[![ZenHub](https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png)](https://zenhub.io)
-[![Join the chat at https://gitter.im/aurelia/discuss](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aurelia/discuss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![CircleCI](https://circleci.com/gh/aurelia/skeleton-navigation.svg?style=shield)](https://circleci.com/gh/aurelia/skeleton-navigation)
+## Getting started
 
-This library is part of the [Aurelia](http://www.aurelia.io/) platform and provides production quality skeletons for people ready to build apps. There are various skeleton options available, depending on your platform and tooling choices.
+Before you start, make sure you have a recent version of [NodeJS](http://nodejs.org/) environment *>=4.0* with NPM 3.
 
-> To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.durandal.io/) and [our email list](http://durandal.us10.list-manage1.com/subscribe?u=dae7661a3872ee02b519f6f29&id=3de6801ccc). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, please [join our community on Gitter](https://gitter.im/aurelia/discuss). If you would like to have deeper insight into our development process, please install the [ZenHub](https://zenhub.io) Chrome or Firefox Extension and visit any of our repository's boards. You can get an overview of all Aurelia work by visiting [the framework board](https://github.com/aurelia/framework#boards).
+From the project folder, execute the following commands:
 
-## Available Skeletons
+```shell
+npm install
+```
 
-Please see the individual readme file within each skeleton for an explanation of how to get setup.
+This will install all required dependencies, including a local version of Webpack that is going to
+build and bundle the app. There is no need to install Webpack globally. 
 
-* **skeleton-webpack** - This project is configured to use either the Babel (ESNext) or the TypeScript transpiler so that you can write your application using either language. It should work well with any standard text editor. This skeleton uses NPM for package management and Webpack for bundling.
-* **skeleton-esnext** - This project is configured to use the Babel transpiler so that you can write your application with ESNext code. It should work well with any standard text editor. This skeleton uses JSPM for package management and SystemJS for loading and bundling.
-* **skeleton-typescript** - This project is configured to use the TypeScript transpiler so that you can write your application using TypeScript. It should work well with any standard text editor, however it has been specially configured to work well with VSCode and Atom, including full TypeScript intellisense for app, unit test and e2e test code. This skeleton uses JSPM for package management and SystemJS for loading and bundling.
-* **skeleton-typescript-aspnetcore** - This is an ASP.NET Core web project configured for building a .NET backend and an Aurelia front-end. It is configured for full TypeScript support, similar to the standard skeleton-typescript option.  This skeleton uses JSPM for package management and SystemJS for loading and bundling.
-* **skeleton-esnext-aspnetcore** - This is an ASP.NET Core web project pre-configured for building a .NET backend and an Aurelia front-end. It is configured for full ES Next support with Babel, similar to the standard skeleton-esnext option. This skeleton uses JSPM for package management and SystemJS for loading and bundling.
+To run the app execute the following command:
+
+```shell
+npm start
+```
+
+This command starts the webpack development server that serves the build bundles.
+You can now browse the skeleton app at http://localhost:9000. Changes in the code
+will automatically build and reload the app.
+
+## Feature configuration
+
+Most of the configuration will happen in the `webpack.config.js` file.
+There, you may configure advanced loader features or add direct SASS or LESS loading support.
+
+## Bundling
+
+To build a development bundle (output to /dist) execute:
+
+```shell
+npm run build
+```
+
+To build an optimized, minified production bundle (output to /dist) execute:
+
+```shell
+npm run build:prod
+```
+
+To test either the development or production build execute:
+
+```shell
+npm run server:prod
+```
+
+The production bundle includes all files that are required for deployment.
+
+## Resource and bundling configuration
+
+You may want to separate out parts of your code to other files.
+This can be done by specifying a build resource object inside `package.json`. 
+
+For example, if you wanted to lazy-load the /users path of the skeleton you could define it as follows:
+
+```js
+// (package.json)
+"aurelia": {
+  "build": {
+    "resources": [
+      {
+        "path": "users",
+        "bundle": "users",
+        "lazy": true
+      }
+    ]
+  }
+},
+```
+
+The "path" field can be either a string or an array of strings. 
+The string should be a path, relative to the src or in case of an external resource, as a require path (e.g. `aurelia-plugin/some-resource.html`).
+`.js`, `.ts` and `.html` extensions are optional and will be resolved automatically.
+The bundle setting is recursive, therefore any files required by the specified path will also be contained by the bundle, unless they are also contained by another one (iteration is done from first to last resource).
+
+Resources must also be specified in case Aurelia is supposed to load an external file or an external module that was not defined as a resource by any of the dependencies.
+Since the syntax is still relatively new, most Aurelia plugins don't define their resources. 
+There might also be reasons not to declare those resources, in case the plugin is to be consumed only partially.
+If you'd like to use external resources, you should declare them yourself, like so:
+
+```js
+// (package.json)
+"aurelia": {
+  "build": {
+    "resources": [
+      "aurelia-some-ui-plugin/dropdown",
+      "aurelia-some-ui-plugin/checkbox"
+    ]
+  }
+},
+```
+
+You can also combine both features to separate out plugins or resources for lazy-loading:
+
+```js
+// (package.json)
+"aurelia": {
+  "build": {
+    "resources": [
+      {
+        "path": "aurelia-animator-css",
+        "bundle": "animator",
+        "lazy": true
+      },
+      {
+        "path": [
+          // lets say we only use the checkbox from within subpage1
+          // we want those to be bundled together in a bundle called: "subpage1"
+          "aurelia-some-ui-plugin/checkbox",
+          "./items/subpage1"
+        ],
+        "bundle": "subpage1",
+        "lazy": true
+      },
+      "aurelia-some-ui-plugin/dropdown"
+    ]
+  }
+},
+```
+
+Please see https://github.com/aurelia/webpack-plugin for more information.
+
+## Running The Unit Tests
+
+To run the unit tests:
+
+```shell
+npm run test
+```
+
+## Running The E2E Tests
+Integration tests are performed with [Protractor](http://angular.github.io/protractor/#/).
+
+1. Place your E2E-Tests into the folder ```test/e2e/src```
+
+2. Run the tests by invoking
+
+  ```shell
+  npm run e2e
+  ```
+
+### Running e2e tests manually
+
+1. Make sure your app runs and is accessible
+
+  ```shell
+  WEBPACK_PORT=19876 npm start
+  ```
+
+3. Once bundle is ready, run the E2E-Tests in another console
+
+  ```shell
+  npm run e2e:start
+  ```
+
+## Electron (coming soon)
+
+To add Electron support to the skeleton, first run:
+
+```shell
+npm run electron:setup
+```
+
+Once the packages are installed, you may either view your app in Electron or build application packages for production:
+
+```shell
+# developing on Electron with live-reload
+npm run electron:start
+
+# creates packages for the current operating system
+npm run electron:package
+
+# creates packages for all operating systems
+npm run electron:package:all
+```
+
+The entry-file for Electron can be found in `config/electron.entry.development.ts`.
+
+Building or creating the Electron package will create a file `electron.js` in the root directory of the skeleton.
+
+### Loading native packages in Electron
+
+If you have packages that cannot work in the Electron Renderer process (e.g. native packages), or wish to use the package in the renderer process as if it is running under Node, list them under `externals`, in the file `config/webpack.electron.js`.
+
+## Acknowledgments
+
+Parts of code responsible for Webpack configuration were inspired by or copied from @AngularClass' [angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter).
+
+Parts of code responsible for Webpack-Electron configuration and packaging were inspired by or copied from @chentsulin's [electron-react-boilerplate](https://github.com/chentsulin/electron-react-boilerplate).
